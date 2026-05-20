@@ -34,11 +34,11 @@ PET_FILES = [
     "break.png",
     "longbreak.png",
 ]
-SCENE_FILES = ["ground_patch.png", "house_idle.png", "house_sleep.png"]
+SCENE_FILES = ["ground_patch.png", "ground_strip.png", "house_idle.png", "house_sleep.png"]
 WHITE_THRESHOLD = 244
 
 
-def remove_white_background(source: Path, destination: Path) -> None:
+def remove_white_background(source: Path, destination: Path, trim: bool = False) -> None:
     image = Image.open(source).convert("RGBA")
     pixels = image.load()
     width, height = image.size
@@ -71,6 +71,11 @@ def remove_white_background(source: Path, destination: Path) -> None:
                     visited.add((nx, ny))
                     queue.append((nx, ny))
 
+    if trim:
+        bbox = image.getchannel("A").getbbox()
+        if bbox:
+            image = image.crop(bbox)
+
     destination.parent.mkdir(parents=True, exist_ok=True)
     image.save(destination)
     print(f"{source.relative_to(PROJECT_ROOT)} -> {destination.relative_to(PROJECT_ROOT)}")
@@ -94,7 +99,7 @@ def main() -> int:
             print(f"Skipping missing scene asset: {source.relative_to(PROJECT_ROOT)}")
 
     for source, destination in jobs:
-        remove_white_background(source, destination)
+        remove_white_background(source, destination, trim=source.name == "ground_strip.png")
 
     return 0
 

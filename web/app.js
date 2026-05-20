@@ -187,6 +187,23 @@ function sceneImageSources(skin, fileName) {
     : [];
 }
 
+function sceneGroundSources(skin, fileName) {
+  const sources = sceneImageSources(skin, fileName);
+  const sceneDir = skin.scene_dir || (skin.asset_dir ? `${skin.asset_dir}/scene` : null);
+  if (!sceneDir || !document.body.classList.contains("stickc-page")) {
+    return sources;
+  }
+  const stripFile = "ground_strip.png";
+  if (fileName === stripFile) {
+    return sources;
+  }
+  return [
+    themeImagePath(`${sceneDir}/transparent/${stripFile}`),
+    themeImagePath(`${sceneDir}/${stripFile}`),
+    ...sources
+  ];
+}
+
 function setOptionalImage(imageNode, sources) {
   if (!imageNode) {
     return;
@@ -303,7 +320,7 @@ function render(config, stateId, pomodoro = currentPomodoro) {
     nodes.sceneStage.dataset.background = (state.background || "").replace(".png", "") || "none";
   }
   setOptionalImage(nodes.sceneBackground, sceneImageSources(skin, state.background));
-  setOptionalImage(nodes.sceneGround, sceneImageSources(skin, state.ground));
+  setOptionalImage(nodes.sceneGround, sceneGroundSources(skin, state.ground));
   setOptionalImage(nodes.sceneHouse, sceneImageSources(skin, state.house));
 
   if (nodes.themeName) {

@@ -137,7 +137,7 @@ h1 {
 }
 
 .scene-stage[data-background="bg_night"] .scene-bg {
-  object-position: 20% 18%;
+  object-position: 12% 12%;
 }
 
 .scene-ground {
@@ -148,6 +148,7 @@ h1 {
   transform: translateX(-50%);
   top: auto;
   height: var(--ground-height);
+  object-fit: fill;
   object-position: center bottom;
 }
 
@@ -435,10 +436,6 @@ select {
 }
 
 .stickc-stage .pet-sprite {
-  width: var(--pet-logical-size);
-  height: var(--pet-logical-size);
-  max-width: min(var(--pet-logical-size), 100%);
-  max-height: min(var(--pet-logical-size), 100%);
   background: transparent;
 }
 
@@ -484,17 +481,21 @@ select {
 }
 
 .stickc-landscape .scene-stage {
-  --ground-width: 44%;
-  --ground-left: 47%;
-  --ground-bottom: 9%;
-  --house-width: 18%;
-  --house-left: 57%;
-  --house-bottom: 21%;
-  --pet-width: 10%;
-  --pet-left: 35%;
-  --pet-bottom: 20%;
-  --pet-shadow-width: 5.2%;
-  --house-shadow-width: 11.7%;
+  --ground-width: 76%;
+  --ground-left: 39%;
+  --ground-bottom: 3%;
+  --ground-height: 17%;
+
+  --house-width: 16%;
+  --house-left: 30%;
+  --house-bottom: 15%;
+
+  --pet-width: 19%;
+  --pet-left: 45%;
+  --pet-bottom: 15%;
+
+  --pet-shadow-width: 10%;
+  --house-shadow-width: 11%;
 }
 
 .stickc-landscape .stickc-status {
@@ -519,17 +520,18 @@ select {
 }
 
 .stickc-portrait .scene-stage {
-  --ground-width: 50%;
-  --ground-left: 50%;
-  --ground-bottom: 10%;
-  --house-width: 20%;
-  --house-left: 61%;
-  --house-bottom: 22%;
-  --pet-width: 11%;
-  --pet-left: 38%;
-  --pet-bottom: 21%;
-  --pet-shadow-width: 5.72%;
-  --house-shadow-width: 13%;
+  --ground-width: 86%;
+  --ground-left: 45%;
+  --ground-bottom: 4%;
+  --ground-height: 16%;
+
+  --house-width: 21%;
+  --house-left: 31%;
+  --house-bottom: 15%;
+
+  --pet-width: 24%;
+  --pet-left: 52%;
+  --pet-bottom: 15%;
 }
 
 @keyframes breathe {
