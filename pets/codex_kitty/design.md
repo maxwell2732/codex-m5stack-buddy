@@ -29,16 +29,42 @@ Shared visual traits:
 The theme supports three skins:
 
 - `yellow`: default skin. Based on `references/01_base_yellow.png`; warm cream
-  and yellow fur with cyan coding accents.
+  and yellow fur with cyan coding accents. This skin has per-state PNG assets
+  in `assets/yellow/`.
 - `black_white_tuxedo`: optional skin. Based on
   `references/02_black_white_tuxedo.png`; black-and-white tuxedo fur with cyan
-  coding accents.
+  coding accents. This skin currently uses its preview image as a fallback.
 - `calico`: optional skin. Based on `references/03_calico.png`; white, orange,
-  and black calico patches with cyan coding accents.
+  and black calico patches with cyan coding accents. This skin currently uses
+  its preview image as a fallback.
 
-Do not slice these reference images into sprites yet. For now, the web
-simulator displays the selected skin's full reference sheet and uses text plus
-small status chips for state feedback.
+The yellow skin now uses one PNG per state. Skins without `asset_dir` continue
+to display their `preview_image`.
+
+## Scene Layers
+
+Codex-Kitty scenes are layered so the pet can stay small and expressive while
+the environment changes around it:
+
+- background
+- ground
+- house
+- pet sprite
+- prop
+- overlay
+- UI
+
+The yellow skin uses `assets/yellow/pet/` for per-state pet sprites and
+`assets/yellow/scene/` for optional scene art. Missing scene images should fall
+back gracefully in the simulator; the pet sprite remains the primary visual.
+
+For composed scenes, pet sprites and house sprites should use transparent PNGs
+from `transparent/` subdirectories when available. Pet and house assets share a
+bottom-aligned ground baseline so the character and house read as part of the
+same pixel world instead of separate stickers.
+
+The ground patch is also treated as a transparent scene asset. It acts as the
+shared base for house and pet placement rather than a second background layer.
 
 ## Naming
 

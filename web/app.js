@@ -1,5 +1,6 @@
 const THEME_URL = "../pets/codex_kitty/states.json";
 const STATE_URL = "../state/current_state.json";
+const POMODORO_URL = "../state/pomodoro_state.json";
 const SUPPORTED_STATES = [
   "idle",
   "running",
@@ -19,7 +20,8 @@ const fallbackTheme = {
   skins: {
     yellow: {
       display_name: "Yellow",
-      reference_image: "references/01_base_yellow.png"
+      preview_image: "references/01_base_yellow.png",
+      asset_dir: "assets/yellow"
     }
   },
   states: {
@@ -30,7 +32,12 @@ const fallbackTheme = {
       message: "Codex-Kitty is resting between turns.",
       icon: "Zz",
       animation: "sleep",
-      sprite: "idle",
+      sprite: "idle.png",
+      background: "bg_day.png",
+      ground: "ground_patch.png",
+      house: "house_idle.png",
+      prop: null,
+      overlay: null,
       color: "#9AA0A6",
       requires_action: false
     }
@@ -46,16 +53,27 @@ const nodes = {
   petName: document.querySelector("#petName"),
   actionPill: document.querySelector("#actionPill"),
   petReference: document.querySelector("#petReference"),
+  sceneStage: document.querySelector("#sceneStage"),
+  sceneBackground: document.querySelector("#sceneBackground"),
+  sceneGround: document.querySelector("#sceneGround"),
+  sceneHouse: document.querySelector("#sceneHouse"),
   stateIcon: document.querySelector("#stateIcon"),
   stateName: document.querySelector("#stateName"),
   mood: document.querySelector("#mood"),
   message: document.querySelector("#message"),
   skinSelect: document.querySelector("#skinSelect"),
-  stateSelect: document.querySelector("#stateSelect")
+  stateSelect: document.querySelector("#stateSelect"),
+  pomodoroPanel: document.querySelector("#pomodoroPanel"),
+  pomodoroTime: document.querySelector("#pomodoroTime"),
+  pomodoroMode: document.querySelector("#pomodoroMode"),
+  pomodoroCycle: document.querySelector("#pomodoroCycle"),
+  pomodoroLine: document.querySelector("#pomodoroLine")
 };
 
 let theme = fallbackTheme;
-let currentStateId = "idle";
+let agentStateId = "idle";
+let currentPomodoro = null;
+const failedSceneSources = new Set();
 
 async function loadJson(url, fallback = null) {
   try {
@@ -85,6 +103,10 @@ function normalizeStateId(rawState, config) {
 }
 
 function populateControls(config) {
+  if (!nodes.skinSelect || !nodes.stateSelect) {
+    return;
+  }
+
   nodes.skinSelect.innerHTML = "";
   for (const [skinId, skin] of Object.entries(config.skins || {})) {
     const option = document.createElement("option");
@@ -107,52 +129,238 @@ function populateControls(config) {
   }
 }
 
-function render(config, stateId) {
-  const state = config.states[stateId] || config.states.idle || fallbackTheme.states.idle;
-  const skinId = nodes.skinSelect.value || config.default_skin || "yellow";
-  const skin = (config.skins || {})[skinId] || {};
-  const referenceImage = skin.reference_image
-    ? `../pets/codex_kitty/${skin.reference_image}`
-    : "../pets/codex_kitty/references/01_base_yellow.png";
+function themeImagePath(relativePath) {
+  return `../pets/codex_kitty/${relativePath}`;
+}
 
-  nodes.themeName.textContent = config.theme_name || "Codex-Kitty";
+function previewImageForSkin(skin) {
+  return themeImagePath(skin.preview_image || skin.reference_image || "references/01_base_yellow.png");
+}
+
+function stateImageForSkin(skin, state) {
+  const petDir = skin.pet_dir || skin.asset_dir;
+  if (skin.asset_dir && state.sprite) {
+    return [
+      petDir ? themeImagePath(`${petDir}/transparent/${state.sprite}`) : null,
+      petDir ? themeImagePath(`${petDir}/${state.sprite}`) : null,
+      themeImagePath(`${skin.asset_dir}/processed/${state.sprite}`),
+      themeImagePath(`${skin.asset_dir}/${state.sprite}`),
+      previewImageForSkin(skin)
+    ].filter(Boolean);
+  }
+  return [previewImageForSkin(skin)];
+}
+
+function setImageWithFallbacks(imageNode, sources) {
+  let index = 0;
+  imageNode.onerror = () => {
+    index += 1;
+    if (index >= sources.length) {
+      imageNode.onerror = null;
+      return;
+    }
+    imageNode.src = sources[index];
+  };
+  if (imageNode.getAttribute("src") !== sources[index]) {
+    imageNode.src = sources[index];
+  }
+}
+
+function sceneImagePath(skin, fileName) {
+  if (!fileName) {
+    return null;
+  }
+  const sceneDir = skin.scene_dir || (skin.asset_dir ? `${skin.asset_dir}/scene` : null);
+  return sceneDir ? themeImagePath(`${sceneDir}/${fileName}`) : null;
+}
+
+function sceneImageSources(skin, fileName) {
+  if (!fileName) {
+    return [];
+  }
+  const sceneDir = skin.scene_dir || (skin.asset_dir ? `${skin.asset_dir}/scene` : null);
+  return sceneDir
+    ? [
+        themeImagePath(`${sceneDir}/transparent/${fileName}`),
+        themeImagePath(`${sceneDir}/${fileName}`)
+      ]
+    : [];
+}
+
+function setOptionalImage(imageNode, sources) {
+  if (!imageNode) {
+    return;
+  }
+  const availableSources = (Array.isArray(sources) ? sources : [sources]).filter(
+    (source) => source && !failedSceneSources.has(source)
+  );
+  if (availableSources.length === 0) {
+    imageNode.removeAttribute("src");
+    imageNode.hidden = true;
+    if (imageNode === nodes.sceneGround && nodes.sceneStage) {
+      nodes.sceneStage.classList.remove("has-ground-image");
+    }
+    return;
+  }
+  imageNode.hidden = false;
+  imageNode.onload = () => {
+    if (imageNode === nodes.sceneGround && nodes.sceneStage) {
+      nodes.sceneStage.classList.add("has-ground-image");
+    }
+  };
+  let index = 0;
+  imageNode.onerror = () => {
+    failedSceneSources.add(availableSources[index]);
+    index += 1;
+    if (index >= availableSources.length) {
+      imageNode.hidden = true;
+      imageNode.removeAttribute("src");
+      if (imageNode === nodes.sceneGround && nodes.sceneStage) {
+        nodes.sceneStage.classList.remove("has-ground-image");
+      }
+      return;
+    }
+    imageNode.src = availableSources[index];
+  };
+  if (imageNode.getAttribute("src") !== availableSources[index]) {
+    imageNode.src = availableSources[index];
+  }
+}
+
+function effectiveStateId(agentState, pomodoro, config) {
+  if (!pomodoro?.enabled) {
+    return agentState;
+  }
+  if (pomodoro.mode === "break") {
+    return "break";
+  }
+  if (pomodoro.mode === "longbreak") {
+    return "longbreak";
+  }
+  if (pomodoro.mode === "focus") {
+    if (["running", "waiting", "error"].includes(agentState)) {
+      return agentState;
+    }
+    return config.states.research ? "research" : agentState;
+  }
+  return agentState;
+}
+
+function pomodoroRemainingSeconds(pomodoro) {
+  if (!pomodoro) {
+    return null;
+  }
+  let remaining = Number(pomodoro.remaining_seconds ?? 0);
+  if (pomodoro.is_running && pomodoro.updated_at) {
+    const updated = Date.parse(pomodoro.updated_at);
+    if (!Number.isNaN(updated)) {
+      remaining -= Math.floor((Date.now() - updated) / 1000);
+    }
+  }
+  return Math.max(0, remaining);
+}
+
+function formatSeconds(seconds) {
+  if (seconds === null || seconds === undefined) {
+    return "--:--";
+  }
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return `${minutes}:${String(remainder).padStart(2, "0")}`;
+}
+
+function renderPomodoro(pomodoro) {
+  const enabled = Boolean(pomodoro?.enabled);
+  const remaining = enabled ? pomodoroRemainingSeconds(pomodoro) : null;
+  const mode = enabled ? pomodoro.mode || "focus" : "off";
+  const time = formatSeconds(remaining);
+  const label = mode.charAt(0).toUpperCase() + mode.slice(1);
+  const line = enabled ? `${time} ${label}` : "--:-- Off";
+
+  if (nodes.pomodoroTime) {
+    nodes.pomodoroTime.textContent = time;
+  }
+  if (nodes.pomodoroMode) {
+    nodes.pomodoroMode.textContent = enabled
+      ? `${label} ${pomodoro.is_running ? "running" : "paused"}`
+      : "Off";
+  }
+  if (nodes.pomodoroCycle) {
+    nodes.pomodoroCycle.textContent = enabled ? `Cycle ${pomodoro.cycle_index ?? 0}` : "Cycle 0";
+  }
+  if (nodes.pomodoroLine) {
+    nodes.pomodoroLine.textContent = line;
+  }
+}
+
+function render(config, stateId, pomodoro = currentPomodoro) {
+  const state = config.states[stateId] || config.states.idle || fallbackTheme.states.idle;
+  const skinId = nodes.skinSelect?.value || config.default_skin || "yellow";
+  const skin = (config.skins || {})[skinId] || fallbackTheme.skins.yellow;
+  const stateImages = stateImageForSkin(skin, state);
+
+  if (nodes.sceneStage) {
+    nodes.sceneStage.dataset.background = (state.background || "").replace(".png", "") || "none";
+  }
+  setOptionalImage(nodes.sceneBackground, sceneImageSources(skin, state.background));
+  setOptionalImage(nodes.sceneGround, sceneImageSources(skin, state.ground));
+  setOptionalImage(nodes.sceneHouse, sceneImageSources(skin, state.house));
+
+  if (nodes.themeName) {
+    nodes.themeName.textContent = config.theme_name || "Codex-Kitty";
+  }
   nodes.petName.textContent = displayPetName(config);
-  nodes.petReference.src = referenceImage;
-  nodes.petReference.alt = `${config.theme_name || "Codex-Kitty"} ${skin.display_name || skinId} reference sheet`;
+  setImageWithFallbacks(nodes.petReference, stateImages);
+  nodes.petReference.alt = `${config.theme_name || "Codex-Kitty"} ${skin.display_name || skinId} ${state.display_name || stateId}`;
+  nodes.petReference.className = `scene-pet pet-sprite ${stateId}`;
   nodes.stateIcon.textContent = state.icon || "";
   nodes.stateName.textContent = state.display_name || stateId;
-  nodes.mood.textContent = state.mood || "";
-  nodes.message.textContent = state.message || "";
+  if (nodes.mood) {
+    nodes.mood.textContent = state.mood || "";
+  }
+  nodes.message.textContent = document.body.classList.contains("stickc-page")
+    ? state.short_message || state.display_name || stateId
+    : state.message || "";
   nodes.actionPill.textContent = state.requires_action ? "action" : "ready";
   nodes.actionPill.style.borderColor = state.color || "#38F7FF";
   nodes.actionPill.style.color = state.color || "#38F7FF";
-  nodes.stateSelect.value = stateId;
+  if (nodes.stateSelect) {
+    nodes.stateSelect.value = stateId;
+  }
+  renderPomodoro(pomodoro);
 }
 
 async function refreshStateFromFile() {
   const stateFile = await loadJson(STATE_URL, null);
-  if (!stateFile) {
-    return;
+  if (stateFile) {
+    const rawState = stateFile.state || stateFile.event_type;
+    agentStateId = normalizeStateId(rawState, theme);
   }
-  const rawState = stateFile.state || stateFile.event_type;
-  currentStateId = normalizeStateId(rawState, theme);
-  render(theme, currentStateId);
+  currentPomodoro = await loadJson(POMODORO_URL, currentPomodoro);
+  render(theme, effectiveStateId(agentStateId, currentPomodoro, theme), currentPomodoro);
 }
 
 async function boot() {
   theme = await loadJson(THEME_URL, fallbackTheme);
   populateControls(theme);
-  currentStateId = normalizeStateId("idle", theme);
-  render(theme, currentStateId);
+  agentStateId = normalizeStateId("idle", theme);
+  currentPomodoro = await loadJson(POMODORO_URL, null);
+  render(theme, effectiveStateId(agentStateId, currentPomodoro, theme), currentPomodoro);
   await refreshStateFromFile();
 
-  nodes.skinSelect.addEventListener("change", () => render(theme, currentStateId));
-  nodes.stateSelect.addEventListener("change", (event) => {
-    currentStateId = normalizeStateId(event.target.value, theme);
-    render(theme, currentStateId);
-  });
+  if (nodes.skinSelect) {
+    nodes.skinSelect.addEventListener("change", () => {
+      render(theme, effectiveStateId(agentStateId, currentPomodoro, theme), currentPomodoro);
+    });
+  }
+  if (nodes.stateSelect) {
+    nodes.stateSelect.addEventListener("change", (event) => {
+      agentStateId = normalizeStateId(event.target.value, theme);
+      render(theme, effectiveStateId(agentStateId, currentPomodoro, theme), currentPomodoro);
+    });
+  }
 
-  window.setInterval(refreshStateFromFile, 2500);
+  window.setInterval(refreshStateFromFile, 1000);
 }
 
 boot();

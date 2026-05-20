@@ -14,6 +14,28 @@ if (-not (Test-Path $StateDir)) {
     New-Item -ItemType Directory -Force -Path $StateDir | Out-Null
 }
 
+function Write-JsonWithRetry {
+    param(
+        [object]$Payload,
+        [string]$Path
+    )
+
+    $TempPath = "$Path.tmp"
+    $Payload | ConvertTo-Json -Depth 6 | Set-Content -Path $TempPath -Encoding UTF8
+
+    for ($attempt = 1; $attempt -le 5; $attempt++) {
+        try {
+            Move-Item -LiteralPath $TempPath -Destination $Path -Force
+            return
+        } catch {
+            if ($attempt -eq 5) {
+                throw
+            }
+            Start-Sleep -Milliseconds (80 * $attempt)
+        }
+    }
+}
+
 $payload = [ordered]@{
     source = "manual"
     state = $State
@@ -26,6 +48,6 @@ $payload = [ordered]@{
     updated_at = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 }
 
-$payload | ConvertTo-Json -Depth 6 | Set-Content -Path $CurrentState -Encoding UTF8
+Write-JsonWithRetry $payload $CurrentState
 Write-Host "Codex Buddy simulator state set to '$State'."
 Write-Host "Updated $CurrentState"

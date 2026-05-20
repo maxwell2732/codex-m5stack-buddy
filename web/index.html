@@ -18,8 +18,15 @@
         </header>
 
         <section class="screen" id="screen">
-          <img class="pet-reference" id="petReference" alt="Codex-Kitty reference sheet">
-          <div class="state-chip" id="stateIcon">Zz</div>
+          <div class="scene-stage" id="sceneStage">
+            <img class="scene-layer scene-bg" id="sceneBackground" alt="">
+            <img class="scene-layer scene-ground" id="sceneGround" alt="">
+            <div class="scene-shadow scene-house-shadow"></div>
+            <img class="scene-layer scene-house" id="sceneHouse" alt="">
+            <div class="scene-shadow scene-pet-shadow"></div>
+            <img class="scene-pet pet-sprite idle" id="petReference" alt="Codex-Kitty sprite">
+          </div>
+          <div class="state-chip scene-ui" id="stateIcon">Zz</div>
         </section>
 
         <section class="readout">
@@ -32,6 +39,12 @@
             <p class="value" id="mood">sleepy</p>
           </div>
           <p class="message" id="message">Codex-Kitty is resting between turns.</p>
+          <div class="pomodoro-readout" id="pomodoroPanel">
+            <p class="label">Pomodoro</p>
+            <p class="value" id="pomodoroTime">--:--</p>
+            <p class="message" id="pomodoroMode">Off</p>
+            <p class="message" id="pomodoroCycle">Cycle 0</p>
+          </div>
         </section>
 
         <section class="controls" aria-label="Simulator controls">
