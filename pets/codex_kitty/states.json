@@ -1,0 +1,172 @@
+﻿{
+  "theme_id": "codex_kitty",
+  "theme_name": "Codex-Kitty",
+  "default_pet_name": "Codex-Kitty",
+  "user_pet_name": null,
+  "version": "0.1.0",
+  "description": "Default pet theme for codex-m5stack-buddy. Codex-Kitty is a tiny coding and vibe research companion for Codex agent status.",
+  "default_skin": "yellow",
+  "skins": {
+    "yellow": {
+      "display_name": "Yellow",
+      "role": "default",
+      "reference_image": "references/01_base_yellow.png",
+      "palette": {
+        "fur_primary": "#FFE8A8",
+        "fur_shadow": "#FFC86A",
+        "accent": "#38F7FF",
+        "ear_inner": "#FF80D8",
+        "outline": "#2B2B2B",
+        "screen": "#0F1720"
+      }
+    },
+    "black_white_tuxedo": {
+      "display_name": "Black & White Tuxedo",
+      "role": "optional",
+      "reference_image": "references/02_black_white_tuxedo.png",
+      "palette": {
+        "fur_primary": "#1E1E1E",
+        "fur_secondary": "#F7F7F7",
+        "accent": "#38F7FF",
+        "ear_inner": "#FF80D8",
+        "outline": "#2B2B2B",
+        "screen": "#0F1720"
+      }
+    },
+    "calico": {
+      "display_name": "Calico",
+      "role": "optional",
+      "reference_image": "references/03_calico.png",
+      "palette": {
+        "fur_primary": "#FFFFFF",
+        "fur_orange": "#FFC347",
+        "fur_black": "#2B2B2B",
+        "accent": "#38F7FF",
+        "ear_inner": "#FF80D8",
+        "outline": "#2B2B2B",
+        "screen": "#0F1720"
+      }
+    }
+  },
+  "states": {
+    "idle": {
+      "display_name": "Idle",
+      "mood": "sleepy",
+      "short_message": "Idle",
+      "message": "Codex-Kitty is resting between turns.",
+      "icon": "Zz",
+      "animation": "sleep",
+      "sprite": "idle",
+      "color": "#9AA0A6",
+      "requires_action": false,
+      "loop": true
+    },
+    "running": {
+      "display_name": "Running",
+      "mood": "typing",
+      "short_message": "Working",
+      "message": "Codex is working. Codex-Kitty is typing with you.",
+      "icon": "</>",
+      "animation": "typing",
+      "sprite": "running",
+      "color": "#38F7FF",
+      "requires_action": false,
+      "loop": true
+    },
+    "waiting": {
+      "display_name": "Waiting",
+      "mood": "alert",
+      "short_message": "Need input",
+      "message": "Codex needs your confirmation.",
+      "icon": "!",
+      "animation": "raise_paw",
+      "sprite": "waiting",
+      "color": "#FF80D8",
+      "requires_action": true,
+      "loop": true
+    },
+    "done": {
+      "display_name": "Done",
+      "mood": "celebrate",
+      "short_message": "Done",
+      "message": "Codex finished the turn.",
+      "icon": "*",
+      "animation": "celebrate",
+      "sprite": "done",
+      "color": "#FFC86A",
+      "requires_action": false,
+      "loop": false
+    },
+    "error": {
+      "display_name": "Error",
+      "mood": "dizzy",
+      "short_message": "Check error",
+      "message": "Something went wrong. Please check the terminal.",
+      "icon": "x_x",
+      "animation": "dizzy",
+      "sprite": "error",
+      "color": "#FF5C7A",
+      "requires_action": true,
+      "loop": true
+    },
+    "research": {
+      "display_name": "Research",
+      "mood": "curious",
+      "short_message": "Vibe research",
+      "message": "Codex-Kitty is exploring notes, questions, and ideas for vibe research.",
+      "icon": "?",
+      "animation": "research",
+      "sprite": "research",
+      "color": "#38F7FF",
+      "requires_action": false,
+      "loop": true
+    },
+    "break": {
+      "display_name": "Break",
+      "mood": "relaxed",
+      "short_message": "Break time",
+      "message": "Take a short break. Codex-Kitty is stretching.",
+      "icon": "<3",
+      "animation": "stretch",
+      "sprite": "break",
+      "color": "#FF80D8",
+      "requires_action": false,
+      "loop": true
+    },
+    "longbreak": {
+      "display_name": "Long Break",
+      "mood": "resting",
+      "short_message": "Long break",
+      "message": "Long break. Codex-Kitty is taking a deeper rest.",
+      "icon": "zzz",
+      "animation": "nap",
+      "sprite": "longbreak",
+      "color": "#9AA0A6",
+      "requires_action": false,
+      "loop": true
+    },
+    "focus": {
+      "display_name": "Focus",
+      "mood": "focused",
+      "short_message": "Focus",
+      "message": "Focus is deprecated. Use research for vibe research mode.",
+      "icon": "?",
+      "animation": "research",
+      "sprite": "research",
+      "color": "#38F7FF",
+      "requires_action": false,
+      "deprecated": true,
+      "replacement": "research"
+    }
+  },
+  "state_aliases": {
+    "agent-turn-complete": "done",
+    "turn_completed": "done",
+    "turn_started": "running",
+    "approval_requested": "waiting",
+    "failed": "error",
+    "researching": "research",
+    "focus": "research"
+  }
+}
+

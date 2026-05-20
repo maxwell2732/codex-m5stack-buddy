@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>codex-m5stack-buddy simulator</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="device" aria-label="Codex Buddy simulator">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow" id="themeName">Codex-Kitty</p>
+            <h1 id="petName">Codex-Kitty</h1>
+          </div>
+          <div class="status-pill" id="actionPill">ready</div>
+        </header>
+
+        <section class="screen" id="screen">
+          <img class="pet-reference" id="petReference" alt="Codex-Kitty reference sheet">
+          <div class="state-chip" id="stateIcon">Zz</div>
+        </section>
+
+        <section class="readout">
+          <div>
+            <p class="label">State</p>
+            <p class="value" id="stateName">Idle</p>
+          </div>
+          <div>
+            <p class="label">Mood</p>
+            <p class="value" id="mood">sleepy</p>
+          </div>
+          <p class="message" id="message">Codex-Kitty is resting between turns.</p>
+        </section>
+
+        <section class="controls" aria-label="Simulator controls">
+          <label>
+            <span>Skin</span>
+            <select id="skinSelect"></select>
+          </label>
+          <label>
+            <span>State</span>
+            <select id="stateSelect"></select>
+          </label>
+        </section>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>
