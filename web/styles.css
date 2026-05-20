@@ -210,6 +210,87 @@ h1 {
   opacity: 0.18;
 }
 
+.drawn-scene .scene-shadow {
+  bottom: calc(var(--pet-bottom) - 1.8%);
+  background: rgba(28, 69, 31, 0.22);
+  filter: blur(0.4px);
+}
+
+.drawn-scene .scene-house-shadow {
+  bottom: calc(var(--house-bottom) - 1.8%);
+  opacity: 0.22;
+}
+
+.drawn-scene .scene-pet-shadow {
+  opacity: 0.28;
+}
+
+.drawn-scene[data-background="bg_night"] .scene-shadow {
+  background: rgba(4, 15, 17, 0.34);
+}
+
+.drawn-scene {
+  background:
+    radial-gradient(circle at 91% 14%, #fff7ba 0 3.6%, transparent 3.9%),
+    radial-gradient(circle at 22% 12%, rgba(255, 255, 255, 0.58) 0 6%, transparent 6.4%),
+    radial-gradient(circle at 30% 11%, rgba(255, 255, 255, 0.46) 0 5.2%, transparent 5.6%),
+    linear-gradient(#88d86c 0 38%, #72cf55 38% 100%);
+}
+
+.drawn-scene .scene-bg,
+.drawn-scene .scene-ground {
+  display: none;
+}
+
+.drawn-scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(circle at 9% 0%, #4b933d 0 11%, transparent 11.4%),
+    radial-gradient(circle at 31% -1%, #4a8e3b 0 11%, transparent 11.4%),
+    radial-gradient(circle at 66% 0%, #4b8d39 0 10.5%, transparent 10.9%),
+    radial-gradient(circle at 84% -2%, #3f7e35 0 12%, transparent 12.4%),
+    radial-gradient(ellipse at 50% 96%, rgba(51, 132, 45, 0.34) 0 54%, transparent 55%);
+  pointer-events: none;
+}
+
+.drawn-scene.has-ground-image::before {
+  display: block;
+}
+
+.drawn-scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: none;
+  pointer-events: none;
+}
+
+.drawn-scene[data-background="bg_night"] {
+  background:
+    radial-gradient(circle at 89% 13%, #eaf0ff 0 3.8%, transparent 4.1%),
+    radial-gradient(circle at 17% 18%, #f6fbff 0 1%, transparent 1.3%),
+    radial-gradient(circle at 38% 9%, #f6fbff 0 0.8%, transparent 1.1%),
+    radial-gradient(circle at 67% 19%, #f6fbff 0 0.9%, transparent 1.2%),
+    linear-gradient(#1b3d5d 0 38%, #315f45 38% 100%);
+}
+
+.drawn-scene[data-background="bg_night"]::before {
+  background:
+    radial-gradient(circle at 9% 0%, #183f33 0 11%, transparent 11.4%),
+    radial-gradient(circle at 31% -1%, #173b31 0 11%, transparent 11.4%),
+    radial-gradient(circle at 66% 0%, #173b31 0 10.5%, transparent 10.9%),
+    radial-gradient(circle at 84% -2%, #12352d 0 12%, transparent 12.4%),
+    radial-gradient(ellipse at 50% 96%, rgba(12, 28, 24, 0.34) 0 54%, transparent 55%);
+}
+
+.drawn-scene[data-background="bg_night"]::after {
+  background: none;
+}
+
 .pet-sprite {
   position: absolute;
   z-index: 4;
@@ -296,6 +377,30 @@ h1 {
   min-height: 0;
 }
 
+.pomodoro-controls {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.pomodoro-controls button {
+  min-width: 0;
+  height: 32px;
+  color: #f8fbff;
+  background: #17212a;
+  border: 2px solid #303b44;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.pomodoro-controls button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .message {
   grid-column: 1 / -1;
   color: #dce7ed;
@@ -342,6 +447,10 @@ select {
   .topbar,
   .controls {
     grid-template-columns: 1fr;
+  }
+
+  .pomodoro-controls {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -459,6 +568,25 @@ select {
   line-height: 1.15;
 }
 
+.stickc-page.pomodoro-active .stickc-status {
+  grid-template-columns: 1fr;
+}
+
+.stickc-page.pomodoro-active .stickc-status .stickc-state,
+.stickc-page.pomodoro-active .stickc-status .tiny-chip,
+.stickc-page.pomodoro-active .stickc-status #message {
+  display: none;
+}
+
+.stickc-page.pomodoro-active .stickc-status #pomodoroLine {
+  display: block;
+  grid-column: 1 / -1;
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+}
+
 .stickc-landscape .stickc-device {
   --pet-logical-size: var(--pet-landscape-size);
   --stickc-stage-padding: 18px 18px 24px;
@@ -498,6 +626,19 @@ select {
   --house-shadow-width: 11%;
 }
 
+.stickc-landscape .drawn-scene {
+  --house-width: 24%;
+  --house-left: 72%;
+  --house-bottom: 15%;
+  --pet-width: 20%;
+  --pet-left: 34%;
+  --pet-bottom: 15%;
+  --pet-shadow-width: 15%;
+  --pet-shadow-height: 4.8%;
+  --house-shadow-width: 22%;
+  --house-shadow-height: 5%;
+}
+
 .stickc-landscape .stickc-status {
   grid-row: 2;
   grid-template-columns: 1fr;
@@ -532,6 +673,19 @@ select {
   --pet-width: 24%;
   --pet-left: 52%;
   --pet-bottom: 15%;
+}
+
+.stickc-portrait .drawn-scene {
+  --house-width: 24%;
+  --house-left: 37%;
+  --house-bottom: 15%;
+  --pet-width: 20%;
+  --pet-left: 59%;
+  --pet-bottom: 15%;
+  --pet-shadow-width: 15%;
+  --pet-shadow-height: 4.8%;
+  --house-shadow-width: 22%;
+  --house-shadow-height: 5%;
 }
 
 @keyframes breathe {

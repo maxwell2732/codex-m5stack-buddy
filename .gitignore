@@ -2,5 +2,6 @@ logs/*
 !logs/.gitkeep
 state/*
 !state/.gitkeep
+!state/pomodoro_state.json
 __pycache__/
 *.pyc

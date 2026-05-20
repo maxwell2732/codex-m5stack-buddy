@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Codex-Kitty StickC portrait drawn preview</title>
+    <link rel="stylesheet" href="./styles.css?v=drawn-bg">
+  </head>
+  <body class="stickc-page stickc-portrait drawn-bg-page">
+    <main class="stickc-shell">
+      <section class="stickc-device" aria-label="M5StickC Plus portrait drawn preview">
+        <div class="stickc-screen">
+          <header class="stickc-header">
+            <h1 id="petName">Codex-Kitty</h1>
+            <div class="tiny-badge" id="actionPill">ready</div>
+          </header>
+          <section class="stickc-stage">
+            <div class="scene-stage drawn-scene" id="sceneStage">
+              <img class="scene-layer scene-bg" id="sceneBackground" alt="">
+              <img class="scene-layer scene-ground" id="sceneGround" alt="">
+              <div class="scene-shadow scene-house-shadow"></div>
+              <img class="scene-layer scene-house" id="sceneHouse" alt="">
+              <div class="scene-shadow scene-pet-shadow"></div>
+              <img class="scene-pet pet-sprite idle" id="petReference" alt="Codex-Kitty sprite">
+            </div>
+          </section>
+          <footer class="stickc-status">
+            <p class="stickc-state" id="stateName">Idle</p>
+            <div class="tiny-chip scene-ui" id="stateIcon">Zz</div>
+            <p class="stickc-message" id="message">Idle</p>
+            <p class="stickc-message" id="pomodoroLine">--:-- Off</p>
+          </footer>
+        </div>
+      </section>
+    </main>
+    <script src="./app.js?v=drawn-bg"></script>
+  </body>
+</html>

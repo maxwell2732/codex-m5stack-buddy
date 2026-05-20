@@ -1,0 +1,13 @@
+﻿{
+    "enabled":  false,
+    "mode":  "focus",
+    "duration_seconds":  1500,
+    "remaining_seconds":  1500,
+    "is_running":  false,
+    "cycle_index":  0,
+    "focus_minutes":  25,
+    "short_break_minutes":  5,
+    "long_break_minutes":  15,
+    "long_break_every":  4,
+    "updated_at":  "2026-05-20T13:41:19Z"
+}
