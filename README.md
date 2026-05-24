@@ -10,7 +10,7 @@ lightning-like tail accent.
 
 **作者：** 朱 晨 | 遗传社科研究 Chen Zhu | China Agricultural University (CAU)
 
-**最后更新：** 2026-05-08
+**最后更新：** 2026-05-24
 
 <p align="center">
   <img src="pets/codex_kitty/references/ondesk.png" alt="M5StickC Plus running the codex-m5stack-buddy firmware" width="500">
