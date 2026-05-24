@@ -5,3 +5,5 @@ state/*
 !state/pomodoro_state.json
 __pycache__/
 *.pyc
+.pio/
+firmware/.pio/

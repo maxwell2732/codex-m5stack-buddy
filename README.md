@@ -17,14 +17,18 @@ Current version:
 - Writes normalized state to `state/current_state.json`.
 - Provides a terminal status panel.
 - Provides a static web simulator using the Codex-Kitty theme.
+- Provides M5StickC Plus firmware with Codex-Kitty sprites, IMU-based
+  portrait/landscape switching, USB serial JSON input, and BLE pairing.
+- Provides computer-side BLE and USB serial bridges that stream
+  `state/current_state.json` to the StickC.
 
 Not implemented yet:
 
-- M5Stack firmware.
-- BLE, Serial, ESP-NOW, or Wi-Fi hardware transport.
 - Voice.
 - App server.
-- Approve or deny workflows.
+- Full approve or deny workflows from the device.
+- Windows startup/service installation for the BLE bridge.
+- ESP-NOW or Wi-Fi hardware transport.
 
 ## Project Layout
 
@@ -74,10 +78,18 @@ codex-m5stack-buddy/
   scripts/
     prepare_sprites.py
     remove_white_bg.py
+    export_firmware_sprite.py
+    codex_ble_bridge.py
+    codex_serial_bridge.py
     test_notify.ps1
     set_state.ps1
     set_pomodoro_state.ps1
     install_config_example.ps1
+  firmware/
+    platformio.ini
+    src/
+      main.cpp
+      codex_kitty_sprites.h
 ```
 
 ## Codex-Kitty Theme
@@ -402,6 +414,143 @@ Display the latest state:
 python .\buddy_status.py
 ```
 
+## M5StickC Plus Buddy Firmware
+
+The `firmware/` directory contains the M5StickC Plus Codex-Kitty firmware. It
+uses the local `m5stick-c` ESP32 board definition, uploads to `COM3`, prints a
+serial heartbeat at `115200`, displays per-state Codex-Kitty sprites on the LCD,
+accepts newline-delimited JSON over BLE and USB serial, and reads the internal
+IMU for portrait/landscape switching.
+
+The firmware currently uses direct SPI LCD drawing and generated RGB565 sprite
+headers instead of the M5Stack graphics libraries. Firmware sprites are generated
+from:
+
+```text
+pets/codex_kitty/assets/yellow/pet/transparent/*.png
+```
+
+Generate the firmware sprite header:
+
+```powershell
+C:\ProgramData\Miniconda3\python.exe .\scripts\export_firmware_sprite.py
+```
+
+The generated file is:
+
+```text
+firmware/src/codex_kitty_sprites.h
+```
+
+Build:
+
+```powershell
+pio run -d .\firmware
+```
+
+Upload:
+
+```powershell
+pio run -d .\firmware -t upload
+```
+
+Monitor:
+
+```powershell
+pio device monitor -d .\firmware -p COM3 -b 115200
+```
+
+Expected serial output:
+
+```text
+buddy-smoke frame=7 state=running ble=advertising buttonA=released layout=0 uptime_ms=7416
+```
+
+On the device, the LCD should show the Codex-Kitty sprite for the current state.
+The eight displayed states are `idle`, `running`, `waiting`, `done`, `error`,
+`research`, `break`, and `longbreak`. Pressing the front A button changes the
+lower status bar color and sends a BLE button event when a BLE client is
+connected.
+
+Layout note: the smoke-test firmware reads the internal IMU over I2C and switches
+between portrait and landscape layouts when the device is held sideways. The
+Codex-Kitty sprite stays at its exported absolute size, currently `78x78`; only
+positioning and surrounding UI change.
+
+### BLE Pairing Bridge
+
+The firmware also advertises a BLE Nordic UART Service as:
+
+```text
+CodexBuddy-5324
+```
+
+It uses the same BLE UART UUID family as Claude Desktop Buddy:
+
+```text
+service: 6e400001-b5a3-f393-e0a9-e50e24dcca9e
+rx:      6e400002-b5a3-f393-e0a9-e50e24dcca9e
+tx:      6e400003-b5a3-f393-e0a9-e50e24dcca9e
+```
+
+The computer-side bridge reads `state/current_state.json`, normalizes the Codex
+Buddy state, and sends compact newline-delimited JSON to the StickC:
+
+```json
+{"state":"running","msg":"Working","source":"codex-m5stack-buddy","ts":1770000000}
+```
+
+Run it with:
+
+```powershell
+C:\Users\zhuch\.conda\envs\pio\python.exe .\scripts\codex_ble_bridge.py
+```
+
+The script requires `bleak`:
+
+```powershell
+pip install bleak
+```
+
+On this Windows workstation, prefer the Python 3.11 environment that also has
+PlatformIO installed:
+
+```powershell
+C:\Users\zhuch\.conda\envs\pio\python.exe -m pip install bleak
+C:\Users\zhuch\.conda\envs\pio\python.exe .\scripts\codex_ble_bridge.py --once
+```
+
+For a single connection/write test:
+
+```powershell
+C:\Users\zhuch\.conda\envs\pio\python.exe .\scripts\codex_ble_bridge.py --once
+```
+
+If BLE dependencies are not available yet, use the USB serial bridge with the
+same JSON protocol:
+
+```powershell
+C:\Users\zhuch\.conda\envs\pio\python.exe .\scripts\codex_serial_bridge.py --port COM3
+```
+
+For a one-shot serial test:
+
+```powershell
+C:\Users\zhuch\.conda\envs\pio\python.exe .\scripts\codex_serial_bridge.py --port COM3 --once
+```
+
+First-pass behavior:
+
+- StickC shows a dim top connection line while advertising.
+- When the bridge connects, the top line uses the current state color.
+- State colors and the displayed sprite follow `idle`, `running`, `waiting`,
+  `done`, `error`, `research`, `break`, and `longbreak`.
+- Pressing the A button sends a BLE event:
+
+```json
+{"evt":"button","button":"A","pressed":true}
+```
+
 ## Codex Notify Integration
 
 Codex supports a top-level `notify` setting in `~/.codex/config.toml`. The
@@ -425,14 +574,19 @@ notify = ["python", "C:\\path\\to\\codex-m5stack-buddy\\codex_buddy_notify.py"]
 
 After editing `~/.codex/config.toml`, restart Codex so it reloads the config.
 
-## Future Hardware Bridge
+## Hardware Bridge Roadmap
 
-Later versions can keep this notify bridge and simulator state model as the
-producer, then add hardware transports:
+The notify bridge and simulator state model now act as the producer for the
+hardware bridge. Current hardware transports:
 
-- BLE: send line-delimited JSON state updates to M5Stack firmware.
-- Serial: stream normalized JSON over USB serial for simple debugging.
-- Wi-Fi: serve or push state updates over a local trusted network.
+- BLE: `scripts/codex_ble_bridge.py` streams normalized JSON state updates to
+  the M5StickC Plus firmware.
+- USB serial: `scripts/codex_serial_bridge.py` provides the same JSON protocol
+  over `COM3` as a debugging and fallback transport.
 
-The current stage is intentionally limited to web simulator and state
-configuration.
+Future transport and workflow work:
+
+- Add a Windows startup task or service so the BLE bridge runs automatically.
+- Add full approve or deny workflows from the StickC buttons when Codex exposes
+  a suitable local approval hook or wrapper point.
+- Consider Wi-Fi or ESP-NOW only if BLE and USB serial are not enough.
